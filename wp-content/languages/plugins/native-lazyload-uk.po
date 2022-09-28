@@ -1,0 +1,42 @@
+# Translation of Plugins - Native Lazyload - Stable (latest release) in Ukrainian
+# This file is distributed under the same license as the Plugins - Native Lazyload - Stable (latest release) package.
+msgid ""
+msgstr ""
+"PO-Revision-Date: 2019-09-09 06:04:02+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n % 10 == 1 && n % 100 != 11) ? 0 : ((n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14)) ? 1 : 2);\n"
+"X-Generator: GlotPress/3.0.0-alpha.2\n"
+"Language: uk_UA\n"
+"Project-Id-Version: Plugins - Native Lazyload - Stable (latest release)\n"
+
+#. translators: 1: required version, 2: currently used version
+#: native-lazyload.php:87
+msgid "Native Lazyload requires at least WordPress version %1$s. Your site is currently running on WordPress %2$s."
+msgstr "Native Lazyload потребує WordPress версії не нижче %1$s. Ваш сайт на разі використовує WordPress %2$s."
+
+#. translators: 1: required version, 2: currently used version
+#: native-lazyload.php:65
+msgid "Native Lazyload requires at least PHP version %1$s. Your site is currently running on PHP %2$s."
+msgstr "Native Lazyload потребує PHP версії не нижче %1$s. Ваш сайт на разі використовує PHP %2$s."
+
+#. Author URI of the plugin
+msgid "https://opensource.google.com"
+msgstr "https://opensource.google.com"
+
+#. Author of the plugin
+msgid "Google"
+msgstr "Google"
+
+#. Description of the plugin
+msgid "Lazy-loads media using the native browser feature."
+msgstr "Вмикає ліниве завантаження мультимедіа, використовуючи вбудовані можливості браузера."
+
+#. Plugin URI of the plugin
+msgid "https://wordpress.org/plugins/native-lazyload/"
+msgstr "https://wordpress.org/plugins/native-lazyload/"
+
+#. Plugin Name of the plugin
+msgid "Native Lazyload"
+msgstr "Native Lazyload"

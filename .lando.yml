@@ -1,0 +1,13 @@
+name: destcar
+recipe: wordpress
+config:
+  webroot: .
+  database: mysql
+services:
+  database:
+    type: mysql
+    portforward: 3341
+    creds:
+      user: car
+      password: car
+      database: car

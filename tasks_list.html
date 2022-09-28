@@ -1,0 +1,397 @@
+<html>
+<head>
+    <title>Tasks List</title>
+</head>
+<body>
+    <!-- Кнопка добавления таски -->
+    <button type="button" id="add_new_task">
+        Add new task
+    </button>
+    <!-- Форма добавления таски. По умолчанию - скрыта -->
+    <form id="form" hidden>
+        <label>
+            <!-- Дата -->
+            <div>Date</div>
+            <input type="date" required>
+        </label>
+        <label>
+            <!-- Заголовок -->
+            <div>Title</div>
+            <input type="text" required>
+        </label>
+        <label>
+            <!-- Описание -->
+            <div>Description</div>
+            <textarea></textarea>
+        </label>
+        <label>
+            <!-- Изображение -->
+            <div>Image</div>
+            <input type="file">
+        </label>
+        <!-- Сабмит формы -->
+        <button type="submit">
+            Save
+        </button>
+    </form>
+    <!-- Таблица отображающая таски -->
+    <table id="table" style="width:100%">
+        <!-- Шапка таблицы -->
+        <thead>
+            <tr>
+                <th>Status</th>
+                <th>Title</th>
+                <th>Date</th>
+                <th></th>
+                <th>View</th>
+            </tr>
+        </thead>
+        <!-- Тело таблицы -->
+        <tbody></tbody>
+    </table>
+<script>
+    // Основной класс который управляет приложением
+    new (function(){
+        // Указатель на this. Используется в методах где this потенциально может быть переопределен
+        var self = this;
+
+        // Колекция компонентов не безопасное хранилище хотя должно бы быть както защищено
+        this.Components = {
+
+            Add_new_task: new (function(APP){
+                // Класс управления кнопкой добавления таски
+                // Может быть только один экземпляр потому делаем его самовызываемым конструктором (тоесть сразу билдим)
+                // Если появится еще одна кнопка то в этот класс добавим ее инициализацию
+
+                // Указатель на this. Используется в методах где this потенциально может быть переопределен
+                var self = this;
+
+                // кнопка
+                this.button = document.getElementById('add_new_task');
+
+                // вешаем ивент
+                this.button.addEventListener('click', function(){
+
+                    // показываем форму
+                    APP.Components.Form.Show();
+                });
+            })(this),
+
+            Form: new (function(APP){
+                // Класс может существовать только в одном екземпляре потому создаем его сразу же
+
+                // Указатель на this. Используется в методах где this потенциально может быть переопределен
+                var self = this;
+
+                // Колекция ДОМ элементов формы
+                var elements = {};
+                elements.form = document.getElementById('form');
+                elements.date = elements.form.querySelector('input[type="date"]');
+                elements.title = elements.form.querySelector('input[type="text"]');
+                elements.description = elements.form.querySelector('textarea');
+                elements.image = elements.form.querySelector('input[type="file"]');
+                elements.submit = elements.form.querySelector('button');
+
+                // Метод показывает форму (стандартный метод прячь/покажи)
+                this.Show = function() {
+                    elements.form.hidden = false;
+                };
+
+                // Метод скрывает форму
+                this.Hide = function() {
+                    elements.form.hidden = true;
+                };
+
+                // Метод покажет форму если она спрятана и спрячет если показана
+                this.Toggle = function() {
+                    elements.form.hidden = !self.form.hidden;
+                };
+
+                // метод сабмита данных формы
+                this.Submit = function() {
+                    // прячем форму
+                    self.Hide();
+
+                    // собираем обьект который содержит все данные которые нужны нам
+                    var data = {
+                        date: elements.date.value,
+                        title: elements.title.value,
+                        description: elements.description.value,
+                        image: elements.image.value,
+                        status: false
+                    };
+
+                    // очищаем форму
+                    elements.date.value = '';
+                    elements.description.value = '';
+                    elements.image.value = '';
+
+                    // создаем ивент
+                    // передача APP необходима потому что переменная APP защищена из вне
+                    new APP.Components.Event(data, APP);
+
+                };
+
+                // добавляем ивент сабмита формы
+                elements.form.addEventListener('submit', function(e){
+                    // очищаем любые екшены которые были зарегестрированы до выполнения скрипта
+                    // таким образом при сабмите страница не будет перезагружена
+                    if (typeof e.preventDefault=='function')e.preventDefault();
+                    if (typeof e.stopPropagation=='function')e.stopPropagation();
+
+                    // выполняем метод сабмит который определили ранее
+                    self.Submit();
+
+                    // возвращаем фолс что б форма не сабмитнулась
+                    return false;
+                });
+
+                // передача this необходима что б передать APP
+            })(this),
+
+            Event: function(data, APP) {
+                // Класс может использоватся множество раз потому не инициируем его а просто используем как примитивный конструктор
+                // из-за того что переменная APP не общедоступна передаем ее в конструктор
+
+                // Указатель на this. Используется в методах где this потенциально может быть переопределен
+                var self = this;
+
+                // создаем ID на основании текущаего таймстемпа
+                data.id = new Date().getTime();
+
+                // метод получения ID
+                this.getId = function() {
+
+                    // возвращает защищенную переменную (числов в строку строку в чесло)
+                    return parseInt(data.id.toString());
+                };
+
+                // Добавляем данные в локалсторейдж
+                APP.Components.LocalStorage.add(data);
+
+                // перерисовываем таблицу (точнее тело таблицы)
+                APP.Components.Table.render();
+            },
+
+            LocalStorage: new (function(APP){
+                // Класс может существовать только в одном екземпляре потому создаем его сразу же
+
+                // Указатель на this. Используется в методах где this потенциально может быть переопределен
+                var self = this;
+
+                // переменная будет содержать список тасок
+                // запрашиваем таски которые были созданы до перезагрузки страницы
+                var list = localStorage.getItem('tl');
+
+                // если они были уже однажды созданы то локалсторейдж будет содержать данные а если нет то нет
+                if (list) {
+                    // если есть - парсим
+                    list = JSON.parse(list);
+                } else {
+                    // если нет - создаем пустой массив
+                    list = [];
+                }
+
+                // метод добавления ивента
+                this.add = function(data) {
+                    // добавляем в массив
+                    list.push(data);
+                    // и сохраняем
+                    this.save();
+                };
+
+                // метод удаление ивента
+                this.remove = function(id) {
+
+                    // новый список
+                    var new_list = [];
+
+                    // перебираем старый список
+                    for (var i=list.length-1;i>=0;i--) {
+
+                        // если ид елемента не равен запрошеному добавляем в новый список
+                        if (list[i].id!=id) {
+                            new_list.push(list[i]);
+                        }
+                    }
+
+                    // переопределяем список
+                    list = new_list;
+
+                    // сохраняем
+                    self.save();
+
+                    // рендерим таблицу
+                    APP.Components.Table.render();
+                };
+
+                // метод сохранения данных в локалсторейдж
+                this.save = function() {
+
+                    // сайваем
+                    localStorage.setItem('tl', JSON.stringify(list));
+                };
+
+                // метод получения защищенного списка
+                this.getList = function() {
+
+                    // сериализируем и десереализируем список и в таком виде возвращаем
+                    return JSON.parse(JSON.stringify(list));
+                };
+
+                // метод получения елемента списка
+                this.getItem = function(id) {
+
+                    // перебираем весь список
+                    for (var i=list.length-1;i>=0;i--) {
+
+                        // если ид елемента такой же как и запрошеный
+                        if (list[i].id==id) {
+
+                            // возвращаем обект елемента списка в защищенном виде
+                            return JSON.parse(JSON.stringify(list[i]));
+                        }
+                    }
+
+                    // если ничего не нашли вернем ничего
+                    return undefined;
+                };
+
+                // метод указания статуса для ивента
+                this.setEventStatus = function(id, status) {
+                    // статус может быть только тру или фолс в любом другом случае уходим
+                    if (status!==true&&status!==false) return;
+                    // перебираем список
+                    for (var i=list.length-1;i>=0;i--) {
+                        // если нашли елемент
+                        if (list[i].id==id) {
+                            // указываем статус
+                            list[i].status = status;
+                        }
+                    }
+                    // сохраняем
+                    self.save();
+                    // рендерим таблицу
+                    APP.Components.Table.render();
+                };
+
+                // передача this необходима что б передать APP
+            })(this),
+            Table: new (function(APP){
+                // Метод работы с таблицей
+
+                // Указатель на this. Используется в методах где this потенциально может быть переопределен
+                var self = this;
+
+                // список ДОМ елементов
+                var elements = {};
+                elements.table = document.getElementById('table');
+                elements.tbody = elements.table.querySelector('tbody');
+
+                // метод очистки таблицы
+                this.clear = function() {
+                    // тупо очищаем ДОМ Но это говеный метод на самом деле
+                    elements.tbody.innerHTML = '';
+                };
+
+                // метод рендеринга
+                this.render = function() {
+                    // очищаем таблицу
+                    self.clear();
+
+                    // переменная нового ХТМЛ
+                    let html = [],
+                        // получим актуальный список ивентов
+                        list = APP.Components.LocalStorage.getList();
+
+                    // сортируем по дате
+                    list.sort( function( a, b ) {
+                        if ( a.date < b.date ){
+                            return -1;
+                        }
+                        if ( a.date > b.date ){
+                            return 1;
+                        }
+                        return 0;
+                    } );
+
+                    // перебираем отсортированный список
+                    for (var i=0;i<list.length;i++) {
+                        // пушим в хтмл строку таблицы
+                        html.push([
+                            '<tr>',
+                                '<td>',(list[i].status?'+':'-'),'</td>',
+                                '<td>',list[i].title,'</td>',
+                                '<td>',list[i].date,'</td>',
+                                '<td class="data"></td>',
+                                '<td><button data-id="',list[i].id,'">View</button></td>',
+                            '</tr>'
+                        ].join(''));
+                    }
+
+                    // вставляем хтмл внуть тела таблицы
+                    elements.tbody.innerHTML = html.join('');
+                };
+
+                // ивент для отлова клика по телу таблицы
+                elements.tbody.addEventListener('click', function(e){
+                    if (e.target.tagName.toLowerCase()=='button') {
+                        // кликнули по кнопке
+                        if (e.target.dataset.id) {
+                            // кнопка имеет data-id атрибут
+
+                            // собираем данные
+                            let id = e.target.dataset.id,
+                                parent = e.target.parentNode.parentNode,
+                                container = parent.querySelector('.data'),
+                                data = APP.Components.LocalStorage.getItem(id);
+
+                            if (container.innerHTML=='') {
+                                // если конейтер пуст рендерим внутренний блок
+                                container.innerHTML = [
+                                    '<div><b>',data.title,'</b></div>',
+                                    '<div><i>',data.date,'</i></div>',
+                                    '<div>',data.description,'</div>',
+                                    '<div><img src="',data.image,'"></div>',
+                                    '<div>',(data.status?'':'<button data-action="done">Done</button>'),'</div>',
+                                    '<div><b><button data-action="remove">Remove</button></div>',
+                                ].join('');
+
+                                // временный идентификатор ИД
+                                container._id = id;
+
+                                // Добавляем клик ивент по контейнеру
+                                container.addEventListener('click', function(e){
+                                    if (e.target.tagName.toLowerCase()=='button') {
+                                        // если кликнули по кнопку
+                                        // проверяем по какой именно
+                                        switch (e.target.dataset.action) {
+                                            case 'done':
+                                                // дан? ставим статус
+                                                APP.Components.LocalStorage.setEventStatus(id, true);
+                                                break;
+                                            case 'remove':
+                                                // удалить? удалить
+                                                APP.Components.LocalStorage.remove(id);
+                                                break;
+                                        }
+                                    }
+                                });
+                            } else {
+                                // очистить контейнер
+                                container.innerHTML = '';
+                            }
+                        }
+                    }
+                });
+
+                // передача this необходима что б передать APP
+            })(this)
+        };
+
+        // первое действие после загрузки страницы
+        self.Components.Table.render();
+    })();
+</script>
+</body>
+</html>
